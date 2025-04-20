@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        html, body {
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+            font-family: 'Poppins', sans-serif; /* Apply Poppins font */
+            scroll-behavior: smooth; /* Enables smooth scrolling */
+            height: 100%; /* Ensure full height for body */
+        }
+
+        .video-container {
+            position: absolute; /* Ensure the video starts at the top */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place behind other content */
+            overflow: hidden;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensure the video covers the entire container */
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0; /* Align navbar to the left */
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #B1B2FF); /* Gradient background */
+            padding: 10px 20px;
+            z-index: 1000;
+            box-sizing: border-box; /* Ensure padding doesn't affect width */
+        }
+
+        nav .logo {
+            color: white;
+            font-size: 20px;
+            font-weight: 600; /* Use bold font weight for the logo */
+            text-decoration: none;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 400; /* Normal font weight for links */
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        section {
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            height: 100vh; /* Full viewport height */
+            text-align: center; /* Center-align text */
+            color: white;
+            background-size: cover; /* Ensure the image covers the entire section */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Prevent image repetition */
+        }
+
+        h1 {
+            margin-bottom: 20px; /* Add spacing below the heading */
+            font-size: 36px;
+            font-weight: 700; /* Bold font weight for headings */
+            color: black; /* Set heading color to black */
+        }
+
+        p {
+            font-size: 18px;
+            font-weight: 300; /* Light font weight for paragraphs */
+            line-height: 1.8;
+            color: black; /* Set paragraph color to black */
+            max-width: 800px;
+            margin: 0 auto; /* Center the paragraph */
+            text-align: justify;
+        }
+
+        /* Background images for each section */
+        #home {
+            background-image: url('layer6.jpg');
+        }
+
+        #about {
+            background-image: url('layer7.jpg');
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        #project {
+            background-image: url('layer8.jpg');
+        }
+
+        #skills {
+            background-image: url('layer9.jpg');
+        }
+
+        #contact {
+            background-image: url('layer10.jpg');
+            text-align: center; /* Center-align content in the contact section */
+            padding: 50px 20px; /* Add padding for spacing */
+        }
+
+        .audio-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .contact-buttons {
+            display: flex;
+            justify-content: center; /* Center the buttons horizontally */
+            gap: 20px; /* Add spacing between buttons */
+            margin-top: 20px; /* Add spacing between the paragraph and buttons */
+        }
+
+        .contact-buttons a {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            transition: background 0.3s ease;
+        }
+
+        .contact-buttons a:hover {
+            background: rgba(0, 0, 0, 0.8); /* Darker background on hover */
+        }
+
+        #contact p {
+            margin-bottom: 20px; /* Add spacing below the paragraph */
+        }
+
+        .project-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .project-card {
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+            border-radius: 10px;
+            overflow: hidden;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .project-description {
+            padding: 15px;
+            color: #000000;
+            text-align: center;
+            background-color: var(--description-bg, rgba(247, 193, 84, 0.885)); /* Default background color */
+            transition: background-color 0.3s ease; /* Smooth transition for background changes */
+        }
+
+        .project-description h2 {
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .project-description p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .project-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #B1B2FF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .project-button:hover {
+            background: #B1B2FF;
+        }
+    </style>
+
+    <!-- AOS Library CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Background video container -->
+    <div class="video-container">
+        <video autoplay muted loop>
+            <source src="background.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <!-- Audio Control -->
+    <div class="audio-control" onclick="toggleAudio()">.</div>
+
+    <!-- Background audio -->
+    <audio id="background-audio" loop>
+        <source src="Tory Lanez Say It (Audio).mp3" type="audio/mpeg">
+        Your browser does not support the audio tag.
+    </audio>
+
+    <nav>
+        <a href="#" class="logo">Faris Ihsan</a>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#project">Project</a></li>
+            <li><a href="#skills">Skills</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Sections for each href -->
+    <section id="home">
+        <h1 data-aos="fade-up">Never Ending My Dream</h1>
+        <p data-aos="fade-up"></p>
+    </section>
+    <section id="about">
+        <h1 data-aos="fade-up">About</h1>
+        <p data-aos="fade-up">NI HAO Aku Faris Ihsan, mahasiswa Manajemen di Universitas Sumatera Utara. Perceive me through whatever lens you deem fitting—be it as a composed observer, an analytical mind, or merely a transient presence in the grand narrative. I offer no definitive image, for I am as fluid as interpretation allows.</p>
+    </section>
+    <section id="project">
+        <h1 data-aos="fade-up">Projects</h1>
+        <p data-aos="fade-up">Here are some of the projects I have worked on to showcase my skills and creativity.</p>
+
+        <div class="project-container" data-aos="fade-up">
+            <div class="project-card">
+                <img src="project1.png" alt="Project 1" class="project-image">
+                <div class="project-description">
+                    <h2>Ball Fight Game</h2>
+                    <p>Welcome to Ultimate Ball Brawl – the most intense, action-packed battle arena where fierce balls clash in chaotic combat! Choose your fighter from a roster of unique, powerful balls, each equipped with devastating ultimate skills that can turn the tide of battle in a flash..</p>
+                    <a href="ball-race-game-with-obstacles.html" target="_blank" class="project-button">View Project</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="skills">
+        <h1 data-aos="fade-up">Skills</h1>
+        <p data-aos="fade-up">I specialize in front-end development, creating responsive and visually appealing websites.</p>
+    </section>
+    <section id="contact">
+        <h1 data-aos="fade-up">Contact</h1>
+        <p data-aos="fade-up">Feel free to reach out to me for collaborations or inquiries. I'm always open to new opportunities!</p>
+        <div class="contact-buttons" data-aos="fade-up">
+            <a href="https://wa.me/yourphonenumber" target="_blank">WhatsApp</a>
+            <a href="https://instagram.com/yourusername" target="_blank">Instagram</a>
+        </div>
+    </section>
+
+    <!-- AOS Library JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // JavaScript to toggle audio playback
+        const audio = document.getElementById('background-audio');
+        const audioControl = document.querySelector('.audio-control');
+
+        function toggleAudio() {
+            if (audio.paused) {
+                audio.play();
+                audioControl.textContent = '.';
+            } else {
+                audio.pause();
+                audioControl.textContent = 'Play Music';
+            }
+        }
+    </script>
+</body>
+</html>

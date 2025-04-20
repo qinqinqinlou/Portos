@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ball Fight Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-image: url("layer6.jpg"); /* Set layer6.jpg as the background */
+            background-size: cover; /* Ensure the image covers the entire background */
+            background-repeat: no-repeat; /* Prevent the image from repeating */
+            background-position: center; /* Center the image */
+        }
+
+        .room {
+            position: relative;
+            width: 80%;
+            height: 500px;
+            margin: 20px auto;
+            border: 2px solid black;
+            background: linear-gradient(to bottom, #e4a04c, #6126cf); /* Green gradient */
+            overflow: hidden;
+        }
+
+        .ball {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .red {
+            background: linear-gradient(to bottom, #ff4d4d, #a21010); /* Gradient for red ball */
+        }
+
+        .green {
+            background: linear-gradient(to bottom, #45f34b, #006400); /* Gradient for green ball */
+        }
+
+        .yellow {
+            background: linear-gradient(to bottom, #ffff6f, #edb305cd); /* Gradient for yellow ball */
+        }
+
+        .blue {
+            background: linear-gradient(to bottom, #4df0ff, #0033cc); /* Gradient for blue ball */
+        }
+
+        .black {
+            background: linear-gradient(to bottom, #666666, #000000); /* Gradient for black ball */
+        }
+
+        .knife {
+            position: absolute;
+            width: 30px; /* Adjust size for the knife image */
+            height: 30px;
+            background-image: url("knive.png"); /* Use knive.png as the background */
+            background-size: cover; /* Ensure the image covers the knife */
+            background-repeat: no-repeat; /* Prevent image repetition */
+            animation: beating 1s infinite; /* Add the beating animation */
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.5);
+            }
+        }
+
+        @keyframes swirl {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes beating {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .beating {
+            animation: beating 1s infinite;
+        }
+
+        .lives-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+
+        .lives {
+            display: flex;
+            gap: 5px;
+        }
+
+        .life-box {
+            width: 20px;
+            height: 20px;
+            border: 1px solid black;
+        }
+
+        #start-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .healing-glow {
+            box-shadow: 0 0 20px 5px rgba(0, 255, 0, 0.8); /* Green glowing effect */
+            transition: box-shadow 1s ease-in-out; /* Smooth transition */
+        }
+
+        .sword {
+            animation: glow-beat 1s infinite; /* Add glowing and beating animation */
+        }
+
+        @keyframes glow-beat {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 10px rgba(255, 255, 0, 0.8); /* Yellow glow */
+            }
+            50% {
+                transform: scale(1.2);
+                box-shadow: 0 0 20px rgba(255, 255, 0, 1); /* Stronger yellow glow */
+            }
+        }
+
+        #damage-dealt-container {
+            margin-top: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        #damage-dealt-container div {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ball Fight Game</h1>
+
+    <!-- Lives Display -->
+    <div class="lives-container">
+        <div class="lives" id="red-lives"></div>
+        <div class="lives" id="green-lives"></div>
+        <div class="lives" id="yellow-lives"></div>
+        <div class="lives" id="blue-lives"></div>
+        <div class="lives" id="black-lives"></div>
+    </div>
+
+    <div class="room" id="fight-room">
+        <!-- Balls -->
+        <div class="ball red" style="top: 50px; left: 50px;" data-lives=""></div>
+        <div class="ball green" style="top: 100px; left: 50px;" data-lives=""></div>
+        <div class="ball yellow" style="top: 150px; left: 50px;" data-lives=""></div>
+        <div class="ball blue" style="top: 200px; left: 50px;" data-lives=""></div>
+        <div class="ball black" style="top: 250px; left: 50px;" data-lives=""></div>
+
+        <!-- Knife -->
+        <div class="knife" id="knife" style="top: 250px; left: 350px;"></div>
+    </div>
+    <button id="start-btn">Start Game</button>
+    <button id="restart-btn" style="display: none; margin-top: px;">Restart Game</button>
+    <div id="status"></div>
+
+    <div id="damage-dealt-container">
+        <h2>Damage Dealt</h2>
+        <div id="damage-red">Red Ball: 0</div>
+        <div id="damage-green">Green Ball: 0</div>
+        <div id="damage-yellow">Yellow Ball: 0</div>
+        <div id="damage-blue">Blue Ball: 0</div>
+        <div id="damage-black">Black Ball: 0</div>
+    </div>
+
+    <script>
+        const balls = document.querySelectorAll('.ball');
+        const knife = document.getElementById('knife');
+        const room = document.getElementById('fight-room');
+        const startButton = document.getElementById('start-btn');
+        const statusDisplay = document.getElementById('status');
+        let knifeHolder = null; // Ball holding the knife
+        let knifeCooldown = false;
+
+        // Initialize damage dealt for each ball
+        const damageDealt = {
+            red: 0,
+            green: 0,
+            yellow: 0,
+            blue: 0,
+            black: 0,
+        };
+
+        // Function to update the damage dealt display
+        function updateDamageDealtDisplay(color) {
+            const damageElement = document.getElementById(`damage-${color}`);
+            damageElement.textContent = `${capitalize(color)} Ball: ${damageDealt[color]}`;
+        }
+
+        // Helper function to capitalize the first letter of a string
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function startGame() {
+            statusDisplay.textContent = 'Game Started!';
+            knife.style.display = 'block'; // Ensure the knife is visible
+            knifeHolder = null; // Reset knife holder
+
+            balls.forEach(ball => {
+                let initialLives = 5; // Default lives for all balls
+
+                // Set specific health for the yellow ball
+                if (ball.classList.contains('yellow')) {
+                    initialLives = 5; // Yellow ball starts with 5 lives
+                }
+
+                ball.style.left = `${Math.random() * (room.offsetWidth - 30)}px`;
+                ball.style.top = `${Math.random() * (room.offsetHeight - 30)}px`;
+                ball.dataset.lives = initialLives; // Set initial lives
+                updateLivesDisplay(ball.classList[1], initialLives); // Initialize lives display
+                ball.style.display = 'block'; // Ensure all balls are visible
+                ball.textContent = ''; // Clear any text inside the ball
+            });
+
+            moveBalls();
+        }
+
+        // Remove references to the black ball's ultimate in moveBalls
+        function moveBalls() {
+            balls.forEach(ball => {
+                ball.dataset.lives = 5; // Initialize lives to 5
+                let speedX = Math.random() * 3 + 1; // Random horizontal speed
+                let speedY = Math.random() * 3 + 1; // Random vertical speed
+                ball.dataset.speedX = speedX; // Store initial speed
+                ball.dataset.speedY = speedY; // Store initial speed
+                let redUltimateUsed = false; // Track if the red ball's ultimate has been used
+                let blueUltimateUsed = false; // Track if the blue ball's ultimate has been used
+                let blackUltimateUsed = false; // Track if the black ball's ultimate has been used
+                let yellowUltimateUsed = false; // Track if the yellow ball's ultimate has been used
+                let greenUltimateUsed = false; // Track if the green ball's ultimate has been used
+
+                function move() {
+                    const currentLeft = parseFloat(ball.style.left);
+                    const currentTop = parseFloat(ball.style.top);
+
+                    // Apply speed multiplier
+                    const speedMultiplier = parseFloat(ball.dataset.speedMultiplier) || 1;
+                    const adjustedSpeedX = speedX * speedMultiplier;
+                    const adjustedSpeedY = speedY * speedMultiplier;
+
+                    // Bounce off walls and adjust position to stay within bounds
+                    if (currentLeft <= 0) {
+                        speedX = Math.abs(speedX); // Reverse direction to the right
+                        ball.style.left = '0px'; // Adjust position to stay within bounds
+                    } else if (currentLeft >= room.offsetWidth - 30) {
+                        speedX = -Math.abs(speedX); // Reverse direction to the left
+                        ball.style.left = `${room.offsetWidth - 30}px`; // Adjust position to stay within bounds
+                    }
+
+                    if (currentTop <= 0) {
+                        speedY = Math.abs(speedY); // Reverse direction downward
+                        ball.style.top = '0px'; // Adjust position to stay within bounds
+                    } else if (currentTop >= room.offsetHeight - 30) {
+                        speedY = -Math.abs(speedY); // Reverse direction upward
+                        ball.style.top = `${room.offsetHeight - 30}px`; // Adjust position to stay within bounds
+                    }
+
+                    ball.style.left = currentLeft + adjustedSpeedX + 'px';
+                    ball.style.top = currentTop + adjustedSpeedY + 'px';
+
+                    // Trigger red ball's ultimate
+                    if (ball.classList.contains('red') && parseInt(ball.dataset.lives, 10) === 3 && !redUltimateUsed) {
+                        activateRedUltimate(ball);
+                        redUltimateUsed = true; // Mark the ultimate as used
+                    }
+
+                    // Trigger blue ball's ultimate
+                    if (ball.classList.contains('blue') && parseInt(ball.dataset.lives, 10) === 3 && !blueUltimateUsed) {
+                        activateBlueUltimate(ball);
+                        blueUltimateUsed = true; // Mark the ultimate as used
+                    }
+
+                    // Trigger black ball's ultimate
+                    if (ball.classList.contains('black') && parseInt(ball.dataset.lives, 10) === 3 && !blackUltimateUsed) {
+                        activateBlackUltimate(ball);
+                        blackUltimateUsed = true; // Mark the ultimate as used
+                    }
+
+                    // Trigger yellow ball's ultimate
+                    if (ball.classList.contains('yellow') && parseInt(ball.dataset.lives, 10) === 3 && !yellowUltimateUsed) {
+                        activateYellowUltimate(ball);
+                        yellowUltimateUsed = true; // Mark the ultimate as used
+                    }
+
+                    // Trigger green ball's ultimate
+                    if (ball.classList.contains('green') && parseInt(ball.dataset.lives, 10) === 3 && !greenUltimateUsed) {
+                        activateGreenUltimate(ball);
+                        greenUltimateUsed = true; // Mark the ultimate as used
+                    }
+
+                    // Check collision with knife
+                    if (!knifeHolder && isColliding(ball, knife)) {
+                        knifeHolder = ball; // Assign the knife to the ball
+                        knife.style.display = 'block'; // Ensure the knife is visible
+                        knife.style.position = 'absolute'; // Ensure the knife is positioned relative to the arena
+                        knife.style.zIndex = '3'; // Ensure the knife is above the ball
+                        statusDisplay.textContent = `${ball.classList[1]} ball picked up the knife!`;
+
+                        // Update knife position to follow the ball
+                        const followKnife = setInterval(() => {
+                            if (knifeHolder === ball) {
+                                knife.style.left = `${parseFloat(ball.style.left) + 10}px`; // Adjust position relative to the ball
+                                knife.style.top = `${parseFloat(ball.style.top) + 10}px`; // Adjust position relative to the ball
+                            } else {
+                                clearInterval(followKnife); // Stop updating if the knife is no longer held
+                            }
+                        }, 50);
+                    }
+
+                    // Check collision with other balls
+                    if (knifeHolder === ball) {
+                        balls.forEach(otherBall => {
+                            if (otherBall !== ball) {
+                                if (isColliding(ball, otherBall)) {
+                                    const lives = parseInt(otherBall.dataset.lives, 10) - 1;
+                                    otherBall.dataset.lives = lives;
+                                    updateLivesDisplay(otherBall.classList[1], lives); // Update health bar
+
+                                    // Track damage dealt
+                                    const attackerColor = ball.classList[1];
+                                    damageDealt[attackerColor] += 1; // Increment damage dealt
+                                    updateDamageDealtDisplay(attackerColor); // Update the display
+
+                                    statusDisplay.textContent = `${attackerColor} ball attacked ${otherBall.classList[1]} ball!`;
+
+                                    if (lives <= 0) {
+                                        statusDisplay.textContent = `${otherBall.classList[1]} ball is eliminated!`;
+                                        otherBall.style.display = 'none'; // Remove ball
+                                        checkWinner(); // Check if there's a winner
+                                    }
+
+                                    // Drop the knife and respawn it randomly
+                                    knifeHolder = null; // Drop the knife
+                                    knife.style.display = 'block'; // Ensure the knife is visible
+                                    knife.style.top = `${Math.random() * (room.offsetHeight - 20)}px`; // Random vertical position
+                                    knife.style.left = `${Math.random() * (room.offsetWidth - 20)}px`; // Random horizontal position
+                                }
+                            }
+                        });
+                    }
+
+                    requestAnimationFrame(move);
+                }
+
+                move();
+            });
+        }
+
+        function activateRedUltimate(redBall) {
+            statusDisplay.innerHTML = '<span style="color: red;">Red ball activated its ultimate ability!</span>';
+
+            // Save the original red ball's background and box shadow
+            const originalBackground = 'linear-gradient(to bottom, #ff4d4d, #a21010)'; // Original gradient for the red ball
+            const originalBoxShadow = redBall.style.boxShadow;
+
+            // Replace the red ball with fireball.png and add a glowing effect
+            redBall.style.backgroundImage = 'url("fireball.png")'; // Use fireball.png as the background
+            redBall.style.backgroundSize = 'cover'; // Ensure the image covers the ball
+            redBall.style.backgroundRepeat = 'no-repeat'; // Prevent image repetition
+            redBall.style.boxShadow = '0 0 20px rgba(255, 69, 0, 0.8)'; // Add a glowing effect
+
+            // Create a fire aura around the red ball
+            const fireAura = document.createElement('div');
+            fireAura.style.position = 'absolute';
+            fireAura.style.width = '80px'; // Slightly larger area of effect
+            fireAura.style.height = '80px';
+            fireAura.style.backgroundColor = 'rgba(255, 69, 0, 0.3)'; // Semi-transparent red
+            fireAura.style.borderRadius = '50%';
+            fireAura.style.pointerEvents = 'none'; // Prevent interaction
+            fireAura.style.zIndex = '1'; // Ensure it is below the red ball
+            room.appendChild(fireAura);
+
+            // Make the fire aura follow the red ball
+            const followRedBall = setInterval(() => {
+                fireAura.style.left = `${parseFloat(redBall.style.left) - 25}px`; // Center the aura around the ball
+                fireAura.style.top = `${parseFloat(redBall.style.top) - 25}px`;
+            }, 25); // 50% faster (originally 50ms)
+
+            // Damage other balls in the fire aura's range
+            const damageInterval = setInterval(() => {
+                balls.forEach(otherBall => {
+                    if (otherBall !== redBall && isColliding(fireAura, otherBall)) {
+                        const lives = parseInt(otherBall.dataset.lives, 10) - 1;
+                        otherBall.dataset.lives = lives;
+                        updateLivesDisplay(otherBall.classList[1], lives);
+
+                        // Increment damage dealt by the red ball
+                        damageDealt.red += 1;
+                        updateDamageDealtDisplay('red');
+
+                        statusDisplay.textContent = `${otherBall.classList[1]} ball was burned by the red ball's fire aura!`;
+
+                        if (lives <= 0) {
+                            statusDisplay.textContent = `${otherBall.classList[1]} ball is eliminated!`;
+                            otherBall.style.display = 'none';
+                            checkWinner();
+                        }
+                    }
+                });
+            }, 100); // 50% faster (originally 200ms)
+
+            // Revert the red ball back to normal after 5 seconds
+            setTimeout(() => {
+                redBall.style.backgroundImage = originalBackground; // Restore the original gradient
+                redBall.style.boxShadow = originalBoxShadow; // Restore the original box shadow
+                fireAura.remove(); // Remove the fire aura
+                clearInterval(followRedBall); // Stop following the red ball
+                clearInterval(damageInterval); // Stop the damage interval
+                statusDisplay.textContent = 'Red ball\'s ultimate ability has ended!';
+            }, 5000);
+        }
+
+        function activateBlueUltimate(blueBall) {
+            statusDisplay.innerHTML = '<span style="color: blue;">Blue ball activated its ultimate ability!</span>';
+
+            // Create a flood effect covering 50% of the arena
+            const flood = document.createElement('div');
+            flood.style.position = 'absolute';
+            flood.style.width = '100%';
+            flood.style.height = '50%'; // Cover only 50% of the arena
+            flood.style.backgroundColor = 'rgba(0, 0, 255, 0.5)';
+            flood.style.pointerEvents = 'none';
+            flood.style.zIndex = '1'; // Ensure the flood is above the balls
+            flood.style.bottom = '0'; // Flood starts from the bottom
+            room.appendChild(flood);
+
+            // Move other balls caught in the flood to the unflooded area
+            balls.forEach(otherBall => {
+                if (otherBall !== blueBall) {
+                    const currentTop = parseFloat(otherBall.style.top);
+
+                    // If the ball is in the flooded area, move it to the unflooded area
+                    if (currentTop >= room.offsetHeight / 2) {
+                        otherBall.style.top = `${Math.random() * (room.offsetHeight / 2 - 30)}px`; // Random position in the unflooded area
+                    }
+                }
+            });
+
+            // Restrict other balls from bouncing on the flood
+            const restrictMovement = setInterval(() => {
+                balls.forEach(otherBall => {
+                    if (otherBall !== blueBall) {
+                        const currentTop = parseFloat(otherBall.style.top);
+
+                        // Prevent movement into the flooded area
+                        if (currentTop >= room.offsetHeight / 2) {
+                            otherBall.style.top = `${room.offsetHeight / 2 - 30}px`; // Keep the ball at the edge of the unflooded area
+                        }
+                    }
+                });
+            }, 50);
+
+            // Remove the flood after 30 seconds
+            setTimeout(() => {
+                flood.remove();
+                clearInterval(restrictMovement);
+                statusDisplay.textContent = 'Blue ball\'s ultimate ability has ended!';
+            }, 30000);
+        }
+
+        function activateBlackUltimate(blackBall) {
+            statusDisplay.innerHTML = '<span style="color: black;">Black ball activated its ultimate ability!</span>';
+
+            // Change the background of the arena to "black.jpg"
+            const originalBackground = room.style.backgroundImage; // Save the original background
+            room.style.backgroundImage = 'url("black.jpg")';
+            room.style.backgroundSize = 'cover'; // Ensure the image covers the entire arena
+            room.style.backgroundPosition = 'center'; // Center the image
+
+            // Make the black ball disappear and increase other balls' speed
+            blackBall.style.display = 'none'; // Make the black ball disappear
+            balls.forEach(ball => {
+                if (ball !== blackBall) {
+                    ball.dataset.speedMultiplier = 3; // Increase speed by 200% (normal speed + 200%)
+                }
+            });
+
+            // Restore normal conditions after 15 seconds
+            setTimeout(() => {
+                room.style.backgroundImage = originalBackground; // Restore the original background
+                blackBall.style.display = 'block'; // Make the black ball reappear
+                balls.forEach(ball => {
+                    ball.dataset.speedMultiplier = 1; // Reset speed multiplier for all balls
+                });
+                statusDisplay.textContent = 'Black ball\'s ultimate ability has ended!';
+            }, 15000); // Ultimate lasts for 15 seconds
+        }
+
+        function activateYellowUltimate(yellowBall) {
+            statusDisplay.innerHTML = '<span style="color: gold;">Yellow ball activated its ultimate ability!</span>';
+
+            let thunderCount = 0;
+            const thunderInterval = setInterval(() => {
+                const thunder = document.createElement('div');
+                thunder.style.position = 'absolute';
+                thunder.style.width = '30px';
+                thunder.style.height = `${room.offsetHeight}px`;
+                thunder.style.backgroundColor = 'yellow';
+                thunder.style.boxShadow = '0 0 20px rgba(255, 255, 0, 0.8)';
+                thunder.style.zIndex = '2';
+                thunder.style.left = `${Math.random() * (room.offsetWidth - 30)}px`;
+                thunder.style.top = '0px';
+                room.appendChild(thunder);
+
+                balls.forEach(ball => {
+                    if (ball !== yellowBall && ball.style.display !== 'none' && isColliding(ball, thunder)) {
+                        const lives = parseInt(ball.dataset.lives, 10) - 1;
+                        ball.dataset.lives = lives;
+                        updateLivesDisplay(ball.classList[1], lives);
+
+                        // Increment damage dealt by the yellow ball
+                        damageDealt.yellow += 1;
+                        updateDamageDealtDisplay('yellow');
+
+                        statusDisplay.textContent = `${ball.classList[1]} ball was struck by yellow ball's thunder!`;
+
+                        // Apply a darker filter to the struck ball
+                        ball.style.filter = 'brightness(50%)';
+                        setTimeout(() => {
+                            ball.style.filter = ''; // Remove the filter after 3 seconds
+                        }, 3000);
+
+                        if (lives <= 0) {
+                            statusDisplay.textContent = `${ball.classList[1]} ball is eliminated!`;
+                            ball.style.display = 'none';
+                            checkWinner();
+                        }
+                    }
+                });
+
+                setTimeout(() => {
+                    thunder.remove();
+                }, 500);
+
+                thunderCount++;
+                if (thunderCount >= 15) {
+                    clearInterval(thunderInterval);
+                    statusDisplay.textContent = 'Yellow ball\'s ultimate ability has ended!';
+                }
+            }, 2000);
+        }
+
+        function activateGreenUltimate(greenBall) {
+            statusDisplay.innerHTML = '<span style="color: green;">Green ball activated its ultimate ability!</span>';
+            greenBall.classList.add('glowing'); // Add glowing effect to indicate the ultimate is active
+
+            let healCount = 0; // Track the number of heals
+            const healInterval = setInterval(() => {
+                if (healCount < 5) { // Heal 5 times (15 seconds total, 1 heal every 3 seconds)
+                    const currentLives = parseInt(greenBall.dataset.lives, 10);
+                    greenBall.dataset.lives = currentLives + 1; // Heal by 1 HP
+                    updateLivesDisplay(greenBall.classList[1], greenBall.dataset.lives); // Update health bar
+                    statusDisplay.textContent = `Green ball healed itself! Current HP: ${greenBall.dataset.lives}`;
+
+                    // Add a temporary glowing effect
+                    greenBall.classList.add('healing-glow');
+                    setTimeout(() => {
+                        greenBall.classList.remove('healing-glow');
+                    }, 1000); // Glow lasts for 1 second
+
+                    healCount++;
+                } else {
+                    clearInterval(healInterval); // Stop healing after 5 heals
+                    greenBall.classList.remove('glowing'); // Remove glowing effect
+                    statusDisplay.textContent = 'Green ball\'s ultimate ability has ended!';
+                }
+            }, 3000); // Heal every 3 seconds
+        }
+
+        function isColliding(ball1, ball2) {
+            const rect1 = ball1.getBoundingClientRect();
+            const rect2 = ball2.getBoundingClientRect();
+
+            return !(
+                rect1.right < rect2.left ||
+                rect1.left > rect2.right ||
+                rect1.bottom < rect2.top ||
+                rect1.top > rect2.bottom
+            );
+        }
+
+        function respawnKnife() {
+            if (knifeCooldown) return;
+            knifeCooldown = true;
+
+            setTimeout(() => {
+                knife.style.top = `${Math.random() * (room.offsetHeight - 20)}px`;
+                knife.style.left = `${Math.random() * (room.offsetWidth - 20)}px`;
+                knifeCooldown = false;
+            }, 3000); // 3-second cooldown
+        }
+
+        function updateLivesDisplay(color, lives) {
+            const ball = Array.from(balls).find(ball => ball.classList.contains(color));
+            if (ball && ball.style.display !== 'none') { // Only update if the ball is visible
+                const livesContainer = document.getElementById(`${color}-lives`);
+                livesContainer.innerHTML = ''; // Clear current lives
+                for (let i = 0; i < lives; i++) {
+                    const lifeBox = document.createElement('div');
+                    lifeBox.classList.add('life-box');
+                    lifeBox.style.backgroundColor = color; // Set the color of the life box
+                    livesContainer.appendChild(lifeBox);
+                }
+            }
+        }
+
+        function checkWinner() {
+            const remainingBalls = Array.from(balls).filter(ball => ball.style.display !== 'none');
+            if (remainingBalls.length === 1) {
+                let winner = remainingBalls[0];
+                const winnerColor = winner.classList[1];
+                statusDisplay.textContent = `The ${winnerColor} ball is the winner!`;
+
+                // Add a crown on top of the winner
+                const crown = document.createElement('div');
+                crown.style.position = 'absolute';
+                crown.style.width = '30px';
+                crown.style.height = '20px';
+                crown.style.backgroundImage = 'url("crown.png")'; // Use crown.png as the crown image
+                crown.style.backgroundSize = 'cover';
+                crown.style.backgroundRepeat = 'no-repeat';
+                crown.style.zIndex = ''; // Ensure the crown is above the ball
+                crown.classList.add('crown'); // Add a class for styling if needed
+                room.appendChild(crown);
+
+                // Attach the crown to the winner
+                const attachCrown = () => {
+                    const ballRect = winner.getBoundingClientRect();
+                    const roomRect = room.getBoundingClientRect();
+                    crown.style.left = `${ballRect.left - roomRect.left}px`;
+                    crown.style.top = `${ballRect.top - roomRect.top - 25}px`; // Position above the ball
+                };
+
+                // Attach the crown initially
+                attachCrown();
+
+                // Update the crown's position smoothly
+                const followCrown = setInterval(() => {
+                    if (winner.style.display !== 'none') {
+                        attachCrown();
+                    } else {
+                        clearInterval(followCrown); // Stop following if the ball is eliminated
+                        crown.remove(); // Remove the crown
+                    }
+                }, 16); // Update at ~60 FPS
+
+                // Allow other balls to take the crown if they collide with the winner
+                const crownCollisionInterval = setInterval(() => {
+                    balls.forEach(ball => {
+                        if (ball !== winner && ball.style.display !== 'none' && isColliding(ball, crown)) {
+                            statusDisplay.textContent = `${ball.classList[1]} ball took the crown!`;
+                            clearInterval(followCrown); // Stop following the previous ball
+                            winner = ball; // Update the winner to the new ball
+                            attachCrown(); // Reattach the crown to the new winner
+                        }
+                    });
+                }, 50);
+            }
+        }
+
+        function spawnHeart() {
+            const heart = document.createElement('div');
+            heart.style.position = 'absolute';
+            heart.style.width = '20px';
+            heart.style.height = '20px';
+            heart.style.backgroundImage = 'url("heartt.png")'; // Use heartt.png as the background
+            heart.style.backgroundSize = 'cover'; // Ensure the image covers the entire heart
+            heart.style.backgroundRepeat = 'no-repeat'; // Prevent image repetition
+            heart.style.borderRadius = '50%'; // Keep the heart circular
+            heart.style.zIndex = '2';
+            heart.style.top = `${Math.random() * (room.offsetHeight - 20)}px`;
+            heart.style.left = `${Math.random() * (room.offsetWidth - 20)}px`;
+            heart.classList.add('heart', 'beating'); // Add the beating animation class
+            room.appendChild(heart);
+
+            // Check for collision with balls
+            const heartInterval = setInterval(() => {
+                balls.forEach(ball => {
+                    // Ensure the ball is visible (not eliminated) before processing
+                    if (ball.style.display !== 'none' && isColliding(ball, heart)) {
+                        const currentLives = parseInt(ball.dataset.lives, 10);
+                        ball.dataset.lives = currentLives + 1;
+                        updateLivesDisplay(ball.classList[1], ball.dataset.lives); // Update health bar
+
+                        statusDisplay.textContent = `${ball.classList[1]} ball picked up a heart and gained 1 health!`;
+
+                        heart.remove();
+                        clearInterval(heartInterval);
+                    }
+                });
+            }, 50);
+
+            // Remove the heart after 10 seconds if not picked up
+            setTimeout(() => {
+                if (heart.parentElement) {
+                    heart.remove();
+                    clearInterval(heartInterval);
+                }
+            }, 10000);
+        }
+
+        function spawnSword() {
+            const sword = document.createElement('div');
+            sword.style.position = 'absolute';
+            sword.style.width = '30px';
+            sword.style.height = '30px';
+            sword.style.backgroundImage = 'url("sword.png")'; // Use sword.png as the background
+            sword.style.backgroundSize = 'cover'; // Ensure the image covers the entire sword
+            sword.style.backgroundRepeat = 'no-repeat'; // Prevent image repetition
+            sword.style.zIndex = '2';
+            sword.style.top = `${Math.random() * (room.offsetHeight - 30)}px`;
+            sword.style.left = `${Math.random() * (room.offsetWidth - 30)}px`;
+            sword.classList.add('sword'); // Add the sword class for glowing and beating animation
+            room.appendChild(sword);
+
+            // Check for collision with balls
+            const swordInterval = setInterval(() => {
+                balls.forEach(ball => {
+                    // Ensure the ball is visible (not eliminated) before processing
+                    if (ball.style.display !== 'none' && isColliding(ball, sword)) {
+                        statusDisplay.textContent = `${ball.classList[1]} ball picked up the sword and triggered its ultimate!`;
+
+                        // Trigger the ball's ultimate ability
+                        if (ball.classList.contains('red')) {
+                            activateRedUltimate(ball);
+                        } else if (ball.classList.contains('blue')) {
+                            activateBlueUltimate(ball);
+                        } else if (ball.classList.contains('black')) {
+                            activateBlackUltimate(ball);
+                        } else if (ball.classList.contains('yellow')) {
+                            activateYellowUltimate(ball);
+                        } else if (ball.classList.contains('green')) {
+                            activateGreenUltimate(ball);
+                        }
+
+                        sword.remove(); // Remove the sword
+                        clearInterval(swordInterval); // Stop checking for collisions
+                    }
+                });
+            }, 50);
+
+            // Remove the sword after 10 seconds if not picked up
+            setTimeout(() => {
+                if (sword.parentElement) {
+                    sword.remove();
+                    clearInterval(swordInterval);
+                }
+            }, 10000);
+        }
+
+        // Spawn a heart every 15 seconds
+        setInterval(spawnHeart, 15000);
+
+        // Spawn a sword every 60 seconds
+        setInterval(spawnSword, 60000);
+
+        startButton.addEventListener('click', startGame);
+
+        const restartButton = document.getElementById('restart-btn');
+
+        function restartGame() {
+            // Reset the status display
+            statusDisplay.textContent = 'Game Restarted!';
+
+            // Reset all balls
+            balls.forEach(ball => {
+                ball.style.left = `${Math.random() * (room.offsetWidth - 30)}px`;
+                ball.style.top = `${Math.random() * (room.offsetHeight - 30)}px`;
+                ball.dataset.lives = 5; // Reset lives to 5
+                updateLivesDisplay(ball.classList[1], 5); // Reset health bar
+                ball.style.display = 'block'; // Make all balls visible
+            });
+
+            // Reset the knife
+            knife.style.top = `${Math.random() * (room.offsetHeight - 20)}px`;
+            knife.style.left = `${Math.random() * (room.offsetWidth - 20)}px`;
+            knifeHolder = null;
+
+            // Clear any remaining crowns or effects
+            const crown = document.querySelector('.crown');
+            if (crown) crown.remove();
+
+            // Restart the game
+            startGame();
+        }
+
+        // Show the restart button after the game starts
+        startButton.addEventListener('click', () => {
+            restartButton.style.display = 'inline-block';
+        });
+
+        // Add event listener to the restart button
+        restartButton.addEventListener('click', restartGame);
+    </script>
+</body>
+</html>
